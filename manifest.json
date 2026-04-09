@@ -1,0 +1,11 @@
+{
+	"id": "image-hover-preview",
+	"name": "Image Hover Preview",
+	"version": "1.0.0",
+	"minAppVersion": "0.15.0",
+	"description": "Hover over images to display a floating preview with zoom support.",
+	"author": "Shin",
+	"authorUrl": "",
+	"fundingUrl": "",
+	"isDesktopOnly": false
+}
