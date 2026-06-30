@@ -356,12 +356,13 @@ export class PreviewOverlay {
 	 * 用于将预览限制在编辑区域内，不遮挡左右侧边栏
 	 */
 	private getEditorBounds(): { left: number; top: number; width: number; height: number } {
-		// 先尝试通过 active leaf 的 view-content 获取精确编辑区域
-		const leafSelectors = [
-			'.workspace-leaf.mod-active .view-content',
-			'.workspace-leaf.mod-active .cm-scroller',
-			'.workspace-leaf.mod-active .workspace-leaf-content',
-		];
+	 // 先尝试通过 active leaf 的 view-content 获取精确编辑区域
+	 // 限定在 .workspace-split.mod-root 内，避免侧边栏获得焦点时取到侧边栏的边界
+	 const leafSelectors = [
+	  '.workspace-split.mod-root .workspace-leaf.mod-active .view-content',
+	  '.workspace-split.mod-root .workspace-leaf.mod-active .cm-scroller',
+	  '.workspace-split.mod-root .workspace-leaf.mod-active .workspace-leaf-content',
+	 ];
 		for (const sel of leafSelectors) {
 			const el = document.querySelector(sel) as HTMLElement | null;
 			if (el) {
@@ -406,8 +407,8 @@ export class PreviewOverlay {
 		// 容器最大尺寸 = 编辑区域 - 边距，防止溢出到侧边栏
 		const maxContainerWidth = Math.max(100, editor.width - MARGIN * 2);
 		const maxContainerHeight = Math.max(100, editor.height - MARGIN * 2);
-		this.container.style.maxWidth = maxContainerWidth + 'px';
-		this.container.style.maxHeight = maxContainerHeight + 'px';
+		this.container.style.setProperty('--preview-max-width', maxContainerWidth + 'px');
+		this.container.style.setProperty('--preview-max-height', maxContainerHeight + 'px');
 
 		// 先临时设置到 (0,0) 位置来获取尺寸
 		this.container.style.left = '0px';
@@ -472,15 +473,18 @@ export class PreviewOverlay {
 		this.imageEl.style.height = '';
 		this.config.zoom = 1;
 
-		// 检查图片是否超出编辑区域，自动缩小到合适尺寸
-		const rect = this.container.getBoundingClientRect();
+		// 检查图片自然尺寸是否超出编辑区域，自动缩小到合适尺寸
+		// 注意：不能使用 container.getBoundingClientRect() 来判断，因为容器已经受到
+		// --preview-max-height CSS 变量的约束，rect 始终 <= 编辑区域，导致缩放检查永远不触发
 		const editor = this.getEditorBounds();
 		const MARGIN = 10;
-		const winW = editor.width - MARGIN * 2;
-		const winH = editor.height - MARGIN * 2;
-		if (rect.width > winW || rect.height > winH) {
-			const fitX = winW / rect.width;
-			const fitY = winH / rect.height;
+		const maxW = Math.max(100, editor.width - MARGIN * 2);
+		const maxH = Math.max(100, editor.height - MARGIN * 2);
+		const naturalW = this.imageEl.naturalWidth;
+		const naturalH = this.imageEl.naturalHeight;
+		if (naturalW > 0 && naturalH > 0 && (naturalW > maxW || naturalH > maxH)) {
+			const fitX = maxW / naturalW;
+			const fitY = maxH / naturalH;
 			this.config.zoom = Math.min(fitX, fitY, 1);
 			this.applyZoom();
 		}

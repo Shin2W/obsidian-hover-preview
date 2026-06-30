@@ -1,7 +1,7 @@
 {
 	"id": "image-hover-preview",
 	"name": "Image Hover Preview",
-	"version": "1.6.0",
+	"version": "1.8.0",
 	"minAppVersion": "0.15.0",
 	"description": "悬停预览图片 - 鼠标悬停在图片链接或缩略图上时显示大图预览.",
 	"author": "AtomCode",
